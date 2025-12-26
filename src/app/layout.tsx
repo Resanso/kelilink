@@ -24,14 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <TRPCProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children}
-        </body>
-      </html>
-    </TRPCProvider>
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
+      >
+        <TRPCProvider>{children}</TRPCProvider>
+      </body>
+    </html>
   );
 }

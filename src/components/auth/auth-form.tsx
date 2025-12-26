@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { authClient } from "@/lib/auth/client";
+import { createClient } from "@/lib/supabase/client";
 
 export function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [role, setRole] = useState("buyer");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +20,16 @@ export function AuthForm() {
 
     try {
       if (isSignUp) {
-        const { data, error } = await authClient.signUp.email({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          name,
-          callbackURL: "/dashboard",
+          options: {
+            data: {
+              name,
+              role,
+            },
+            emailRedirectTo: `${location.origin}/auth/callback`,
+          },
         });
 
         if (error) {
@@ -31,16 +38,16 @@ export function AuthForm() {
           console.log("Sign up successful:", data);
         }
       } else {
-        const { data, error } = await authClient.signIn.email({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          callbackURL: "/dashboard",
         });
 
         if (error) {
           setError(error.message);
         } else {
           console.log("Sign in successful:", data);
+          window.location.reload(); // Refresh to update session state
         }
       }
     } catch (err) {
@@ -53,9 +60,18 @@ export function AuthForm() {
 
   const signInWithGoogle = async () => {
     try {
-      await authClient.signIn.social({
+      await supabase.auth.signInWithOAuth({
         provider: "google",
-        callbackURL: "/dashboard",
+        options: {
+          redirectTo: `${location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          // Note: Role selection for OAuth is tricky as we can't easily pass it here
+          // unless we use a custom flow or update it after signup.
+          // For now, default is 'buyer' via database default.
+        },
       });
     } catch (err) {
       setError("Google sign in failed");
@@ -133,6 +149,38 @@ export function AuthForm() {
             placeholder="Minimum 8 characters"
           />
         </div>
+
+        {isSignUp && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              I want to be a:
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="role"
+                  value="buyer"
+                  checked={role === "buyer"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <span className="ml-2 text-sm text-gray-700">Buyer</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="role"
+                  value="seller"
+                  checked={role === "seller"}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <span className="ml-2 text-sm text-gray-700">Vendor</span>
+              </label>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
