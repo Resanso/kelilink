@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc/client";
+import Link from "next/link";
 import Image from "next/image";
 
 export default function BuyerOrdersPage() {
@@ -147,19 +148,37 @@ export default function BuyerOrdersPage() {
                         {formatPrice(order.totalPrice)}
                       </p>
                     </div>
-                    {(order.status === "pending" || order.status === "confirmed") && (
-                      <button
-                        onClick={() => {
-                          if (confirm("Are you sure you want to cancel this order?")) {
-                            cancelOrder.mutate({ orderId: order.id });
-                          }
-                        }}
-                        disabled={cancelOrder.isPending}
-                        className="px-3 py-1 bg-red-50 text-red-600 text-xs font-medium rounded hover:bg-red-100 transition-colors disabled:opacity-50"
-                      >
-                        {cancelOrder.isPending ? "Cancelling..." : "Cancel"}
-                      </button>
-                    )}
+                    <div className="flex gap-2">
+                        {(order.status === "pending") && (
+                            <Link
+                                href={`/buyer/orders/${order.id}/payment`}
+                                className="px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm"
+                            >
+                                Pay Now
+                            </Link>
+                        )}
+                        {(order.status === "pending" || order.status === "confirmed") && (
+                        <button
+                            onClick={() => {
+                            if (confirm("Are you sure you want to cancel this order?")) {
+                                cancelOrder.mutate({ orderId: order.id });
+                            }
+                            }}
+                            disabled={cancelOrder.isPending}
+                            className="px-3 py-1 bg-red-50 text-red-600 text-xs font-medium rounded hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                            {cancelOrder.isPending ? "..." : "Cancel"}
+                        </button>
+                        )}
+                         {(order.status === "delivering") && (
+                            <Link
+                                href={`/buyer/orders/${order.id}/tracking`}
+                                className="px-3 py-1 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors shadow-sm animate-pulse"
+                            >
+                                Track 📍
+                            </Link>
+                        )}
+                    </div>
                   </div>
 
               </div>

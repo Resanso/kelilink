@@ -1,0 +1,59 @@
+"use client";
+
+import { trpc } from "@/lib/trpc/client";
+import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+
+// Dynamic import for Leaflet map (SSR false)
+const MapOrders = dynamic(() => import("@/components/map/MapOrders"), { 
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-gray-100 flex items-center justify-center animate-pulse">Loading Map...</div> 
+});
+
+export default function TrackingPage() {
+  const { id } = useParams() as { id: string };
+  const { data: order, isLoading } = trpc.orders.getOrderById.useQuery({ orderId: id });
+  
+  // Quick hack to force a re-render or ensure map loads
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (isLoading) return <div className="p-8 text-center">Loading tracking info...</div>;
+  if (!order) return <div className="p-8 text-center text-red-500">Order not found</div>;
+
+  return (
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-gray-100">
+       {/* Map Layer */}
+       <div className="absolute inset-0 z-0">
+          {mounted && <MapOrders vendorName={order.vendor.name || "Vendor"} buyerName="You" />}
+       </div>
+
+       {/* Overlay UI */}
+       <div className="absolute top-4 left-4 right-4 z-10">
+          <div className="bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-lg border border-white/50">
+             <div className="flex justify-between items-center mb-2">
+                <h2 className="text-lg font-bold text-gray-900">Live Tracking 🛵</h2>
+                <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-wider">
+                    {order.status}
+                </span>
+             </div>
+             <p className="text-sm text-gray-600">
+                Your order from <span className="font-semibold text-gray-900">{order.vendor.name}</span> is on the way!
+             </p>
+          </div>
+       </div>
+
+       {/* Bottom Sheet / Actions */}
+       <div className="absolute bottom-6 left-4 right-4 z-10">
+            <Link 
+                href="/buyer/orders"
+                className="block w-full bg-white hover:bg-gray-50 text-gray-900 font-semibold py-3 px-4 rounded-xl shadow-lg text-center transition-colors"
+            >
+                Back to Orders
+            </Link>
+       </div>
+    </div>
+  );
+}

@@ -251,4 +251,85 @@ export const ordersRouter = router({
 
       return { success: true };
     }),
+
+
+  getOrderById: protectedProcedure
+    .input(z.object({ orderId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { orderId } = input;
+      const userId = ctx.session.user.id; // Could be buyer or vendor
+
+      // Fetch order with related data
+      const rows = await ctx.db
+        .select({
+          order: ordersTable,
+          vendor: {
+            name: usersTable.name,
+            avatarUrl: usersTable.avatarUrl,
+          },
+          item: orderItemsTable,
+          product: {
+             name: productsTable.name,
+             price: productsTable.price,
+          }
+        })
+        .from(ordersTable)
+        .innerJoin(usersTable, eq(ordersTable.vendorId, usersTable.id))
+        .leftJoin(orderItemsTable, eq(ordersTable.id, orderItemsTable.orderId))
+        .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
+        .where(
+             and(
+                 eq(ordersTable.id, orderId),
+                 // Simple access control: user must be buyer OR vendor
+                 // Ideally split into separate checks, but for now this works if we trust the IDs
+                 // Or we can just let any authenticated user view (less secure)
+                 // Let's rely on filter below or strict check
+             )
+        );
+
+      if (rows.length === 0) {
+         throw new Error("Order not found");
+      }
+      
+      const firstRow = rows[0];
+      // Access check
+      if (firstRow.order.buyerId !== userId && firstRow.order.vendorId !== userId) {
+         throw new Error("Unauthorized");
+      }
+
+      // Group items
+      const items = rows.map(r => ({
+          ...r.item,
+          productName: r.product?.name || "Unknown Product",
+          productPrice: r.product?.price || 0
+      })).filter(i => i.id); // Filter out nulls if any (left join)
+
+      return {
+          ...firstRow.order,
+          vendor: firstRow.vendor,
+          items
+      };
+    }),
+
+  payOrder: protectedProcedure
+    .input(z.object({ orderId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { orderId } = input;
+      const buyerId = ctx.session.user.id;
+
+      const [order] = await ctx.db
+        .select()
+        .from(ordersTable)
+        .where(and(eq(ordersTable.id, orderId), eq(ordersTable.buyerId, buyerId)));
+
+      if (!order) throw new Error("Order not found or unauthorized");
+
+      // Skipping 'confirmed' based on requirements, straight to 'delivering'
+      await ctx.db
+        .update(ordersTable)
+        .set({ status: "delivering" })
+        .where(eq(ordersTable.id, orderId));
+
+      return { success: true };
+    }),
 });
