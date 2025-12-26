@@ -13,6 +13,7 @@ export const productsRouter = router({
         name: productsTable.name,
         price: productsTable.price,
         imageUrl: productsTable.imageUrl,
+        vendorId: productsTable.vendorId,
         vendor: {
           name: usersTable.name,
           avatarUrl: usersTable.avatarUrl,

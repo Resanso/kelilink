@@ -2,13 +2,22 @@
 
 import { useState } from "react";
 import { trpc } from "@/lib/trpc/client";
-import Link from "next/link";
 import Image from "next/image";
 
 export default function BuyerOrdersPage() {
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
 
+  const utils = trpc.useUtils();
   const { data: orders, isLoading } = trpc.orders.getBuyerOrders.useQuery();
+
+  const cancelOrder = trpc.orders.cancelOrder.useMutation({
+    onSuccess: () => {
+      utils.orders.getBuyerOrders.invalidate();
+    },
+    onError: (err) => {
+        alert("Failed to cancel order: " + err.message);
+    }
+  });
 
   const filteredOrders = orders?.filter((order) => {
     if (activeTab === "active") {
@@ -88,9 +97,8 @@ export default function BuyerOrdersPage() {
         {filteredOrders && filteredOrders.length > 0 ? (
           <div className="space-y-4">
             {filteredOrders.map((order) => (
-              <Link
+              <div
                 key={order.id}
-                href={`/order/${order.id}`}
                 className="block bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between mb-3">
@@ -132,29 +140,29 @@ export default function BuyerOrdersPage() {
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center border-t border-gray-100 pt-3">
-                  <div>
-                    <p className="text-xs text-gray-500">Total Price</p>
-                    <p className="font-bold text-gray-900">
-                      {formatPrice(order.totalPrice)}
-                    </p>
+                  <div className="flex justify-between items-center border-t border-gray-100 pt-3 mt-3">
+                    <div>
+                      <p className="text-xs text-gray-500">Total Price</p>
+                      <p className="font-bold text-gray-900">
+                        {formatPrice(order.totalPrice)}
+                      </p>
+                    </div>
+                    {(order.status === "pending" || order.status === "confirmed") && (
+                      <button
+                        onClick={() => {
+                          if (confirm("Are you sure you want to cancel this order?")) {
+                            cancelOrder.mutate({ orderId: order.id });
+                          }
+                        }}
+                        disabled={cancelOrder.isPending}
+                        className="px-3 py-1 bg-red-50 text-red-600 text-xs font-medium rounded hover:bg-red-100 transition-colors disabled:opacity-50"
+                      >
+                        {cancelOrder.isPending ? "Cancelling..." : "Cancel"}
+                      </button>
+                    )}
                   </div>
-                  <div className="text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
+
+              </div>
             ))}
           </div>
         ) : (

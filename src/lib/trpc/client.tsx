@@ -8,7 +8,10 @@ import { useState } from "react";
 import superjson from "superjson";
 import type { AppRouter } from "../server/routers/_app";
 import { makeQueryClient } from "./query-client";
+import { inferRouterOutputs } from "@trpc/server";
+
 export const trpc = createTRPCReact<AppRouter>();
+export type RouterOutputs = inferRouterOutputs<AppRouter>;
 let clientQueryClientSingleton: QueryClient;
 function getQueryClient() {
   if (typeof window === "undefined") {
