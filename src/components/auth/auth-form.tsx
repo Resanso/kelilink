@@ -80,12 +80,12 @@ export function AuthForm() {
   };
 
   return (
-    <div className="w-full max-w-md space-y-6 p-6 bg-white rounded-lg shadow-md">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {isSignUp ? "Sign Up" : "Sign In"}
+    <div className="w-full space-y-8">
+      <div className="text-left">
+        <h2 className="text-5xl font-extrabold text-[#0A2540] tracking-tight mb-2">
+          {isSignUp ? "SIGN UP" : "LOGIN"}
         </h2>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-500 text-lg">
           {isSignUp
             ? "Create your account to get started"
             : "Welcome back! Please sign in to your account."}

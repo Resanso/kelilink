@@ -9,24 +9,47 @@ export const ordersRouter = router({
   getBuyerOrders: protectedProcedure.query(async ({ ctx }) => {
     const buyerId = ctx.session.user.id;
 
-    const orders = await ctx.db
+    // Fetch orders with items and product details
+    const rawRows = await ctx.db
       .select({
-        id: ordersTable.id,
-        status: ordersTable.status,
-        totalPrice: ordersTable.totalPrice,
-        createdAt: ordersTable.createdAt,
+        order: ordersTable,
         vendor: {
           name: usersTable.name,
           avatarUrl: usersTable.avatarUrl,
         },
+        item: orderItemsTable,
+        product: {
+          name: productsTable.name,
+        },
       })
       .from(ordersTable)
-      // Join with Vendor details (usersTable)
       .innerJoin(usersTable, eq(ordersTable.vendorId, usersTable.id))
+      .leftJoin(orderItemsTable, eq(ordersTable.id, orderItemsTable.orderId))
+      .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
       .where(eq(ordersTable.buyerId, buyerId))
       .orderBy(desc(ordersTable.createdAt));
 
-    return orders;
+    // Group by Order ID
+    const ordersMap = new Map();
+
+    for (const row of rawRows) {
+      if (!ordersMap.has(row.order.id)) {
+        ordersMap.set(row.order.id, {
+          ...row.order,
+          vendor: row.vendor,
+          items: [],
+        });
+      }
+
+      if (row.item && row.product) {
+        ordersMap.get(row.order.id).items.push({
+          ...row.item,
+          productName: row.product.name,
+        });
+      }
+    }
+
+    return Array.from(ordersMap.values());
   }),
 
 
@@ -57,9 +80,9 @@ export const ordersRouter = router({
         // Create a map for easy lookup
         const productMap = new Map(products.map((p) => [p.id, p]));
 
-        // 2. Calculate Total Price & Prepare Order Items
-        let totalPrice = 0;
-        const orderItemsToInsert: {
+        // Calculate Cost of New Items
+        let newItemsTotal = 0;
+        const newOrderItems: {
           orderId: string;
           productId: string;
           quantity: number;
@@ -68,47 +91,79 @@ export const ordersRouter = router({
 
         for (const item of items) {
           const product = productMap.get(item.productId);
-          if (!product) {
-            throw new Error(`Product match not found for ID: ${item.productId}`);
-          }
-          if (product.vendorId !== vendorId) {
-             throw new Error(`Product ${product.name} does not belong to the selected vendor.`);
-          }
+          if (!product) throw new Error(`Product match not found for ID: ${item.productId}`);
+          if (product.vendorId !== vendorId) throw new Error(`Product ${product.name} does not belong to the selected vendor.`);
 
           const itemTotal = product.price * item.quantity;
-          totalPrice += itemTotal;
+          newItemsTotal += itemTotal;
 
-          orderItemsToInsert.push({
-            // orderId will be filled later
-            orderId: "", 
+          newOrderItems.push({
+            orderId: "", // placeholder
             productId: product.id,
             quantity: item.quantity,
             priceAtOrder: product.price,
           });
         }
 
-        // 3. Create Order
-        const [newOrder] = await tx
-          .insert(ordersTable)
-          .values({
-            buyerId,
-            vendorId,
-            status: "pending",
-            totalPrice,
-          })
-          .returning({ id: ordersTable.id });
+        // 2. Check for EXISTING Pending Order for this Vendor & Buyer
+        const [existingOrder] = await tx
+            .select()
+            .from(ordersTable)
+            .where(
+                and(
+                    eq(ordersTable.buyerId, buyerId),
+                    eq(ordersTable.vendorId, vendorId),
+                    eq(ordersTable.status, "pending")
+                )
+            );
 
-        // 4. Create Order Items
-        if (orderItemsToInsert.length > 0) {
-          await tx.insert(orderItemsTable).values(
-            orderItemsToInsert.map((item) => ({
-              ...item,
-              orderId: newOrder.id,
-            }))
-          );
+        let activeOrderId = "";
+
+        if (existingOrder) {
+            // APPEND to Existing Order
+            activeOrderId = existingOrder.id;
+            
+            // Update Total Price
+            await tx
+                .update(ordersTable)
+                .set({ 
+                    totalPrice: existingOrder.totalPrice + newItemsTotal,
+                    // Optionally update updatedAt
+                })
+                .where(eq(ordersTable.id, activeOrderId));
+
+        } else {
+            // CREATE New Order
+            const [newOrder] = await tx
+              .insert(ordersTable)
+              .values({
+                buyerId,
+                vendorId,
+                status: "pending",
+                totalPrice: newItemsTotal,
+              })
+              .returning({ id: ordersTable.id });
+            
+            activeOrderId = newOrder.id;
         }
 
-        return { orderId: newOrder.id };
+        // 3. Insert Items (linked to activeOrderId)
+        if (newOrderItems.length > 0) {
+            // Check for existing items in this order to merge quantities (Cart logic)
+            // For simplicity in this iteration, we will simply append rows. 
+            // Ideally, we would upsert or sum quantities.
+            // Let's do a quick check to see if we can merge in memory or just insert.
+            // "Insert" is safest for now to avoid complexity with primary keys if they exist on items.
+            
+           await tx.insert(orderItemsTable).values(
+             newOrderItems.map((item) => ({
+               ...item,
+               orderId: activeOrderId,
+             }))
+           );
+         }
+
+        return { orderId: activeOrderId };
       });
     }),
 
@@ -331,6 +386,29 @@ export const ordersRouter = router({
         .where(eq(ordersTable.id, orderId));
 
       return { success: true };
+    }),
+
+  checkoutAllPending: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const buyerId = ctx.session.user.id;
+
+      // 1. Get all pending orders
+      const pendingOrders = await ctx.db
+        .select()
+        .from(ordersTable)
+        .where(and(eq(ordersTable.buyerId, buyerId), eq(ordersTable.status, "pending")));
+
+      if (pendingOrders.length === 0) {
+        throw new Error("No pending orders to checkout");
+      }
+
+      // 2. Update all to 'delivering' (Simulate Payment)
+      await ctx.db
+        .update(ordersTable)
+        .set({ status: "delivering" })
+        .where(and(eq(ordersTable.buyerId, buyerId), eq(ordersTable.status, "pending")));
+
+        return { success: true, count: pendingOrders.length };
     }),
 
   confirmDelivery: protectedProcedure

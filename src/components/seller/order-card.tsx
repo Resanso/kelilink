@@ -1,11 +1,10 @@
 "use client";
 
 import { trpc } from "@/lib/trpc/client";
-import { type RouterOutputs } from "@/lib/trpc/client"; // You might need to export this type helper from client.ts or define it
+import { type RouterOutputs } from "@/lib/trpc/client"; 
 import Image from "next/image";
 import { useState } from "react";
 
-// Helper type to get the element type of the array returned by getVendorOrders
 type Order = RouterOutputs["orders"]["getVendorOrders"][number];
 
 export function SellerOrderCard({ order }: { order: Order }) {
@@ -42,69 +41,75 @@ export function SellerOrderCard({ order }: { order: Order }) {
   };
 
   const statusColors = {
-    pending: "bg-yellow-100 text-yellow-800",
-    confirmed: "bg-blue-100 text-blue-800",
-    delivering: "bg-purple-100 text-purple-800",
-    completed: "bg-green-100 text-green-800",
-    cancelled: "bg-red-100 text-red-800",
+    pending: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    confirmed: "bg-blue-50 text-blue-700 border border-blue-200",
+    delivering: "bg-purple-50 text-purple-700 border border-purple-200",
+    completed: "bg-green-50 text-green-700 border border-green-200",
+    cancelled: "bg-red-50 text-red-700 border border-red-200",
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-card w-full rounded-2xl shadow-sm border border-border/50 p-5 transition-shadow hover:shadow-md">
+      {/* Header Section */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
-          <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-100">
-            {order.buyer.avatarUrl && (
+          <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted border border-border">
+            {order.buyer.avatarUrl ? (
               <Image
                 src={order.buyer.avatarUrl}
                 alt={order.buyer.name || "Buyer"}
                 fill
                 className="object-cover"
               />
+            ) : (
+               <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">?</div>
             )}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{order.buyer.name || "Unknown Buyer"}</h3>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[order.status] || "bg-gray-100"}`}>
+            <h3 className="font-semibold text-foreground text-lg leading-tight">{order.buyer.name || "Unknown Buyer"}</h3>
+            <span className={`inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full font-medium ${statusColors[order.status] || "bg-muted text-muted-foreground"}`}>
               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
             </span>
           </div>
         </div>
         <div className="text-right">
-          <p className="font-bold text-gray-900">{formatPrice(order.totalPrice)}</p>
-          <p className="text-xs text-gray-500">
+          <p className="font-bold text-lg text-foreground">{formatPrice(order.totalPrice)}</p>
+          <p className="text-xs text-muted-foreground">
             {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
       </div>
 
-      <div className="border-t border-b border-gray-100 py-3 my-3 space-y-2">
+      {/* Items Section using muted background for grouping */}
+      <div className="bg-muted/30 rounded-xl p-3 space-y-2 mb-5">
         {order.items.map((item: any, idx: number) => (
-          <div key={idx} className="flex justify-between text-sm">
-            <span className="text-gray-600">
-              {item.quantity}x {item.productName}
-            </span>
-            <span className="text-gray-900 font-medium">
+          <div key={idx} className="flex justify-between text-sm items-center">
+            <div className="flex items-center gap-2 text-foreground/80">
+              <span className="font-semibold text-foreground min-w-[20px]">{item.quantity}x</span> 
+              <span>{item.productName}</span>
+            </div>
+            <span className="text-muted-foreground tabular-nums">
               {formatPrice(item.priceAtOrder * item.quantity)}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mt-4">
+      {/* Actions */}
+      <div className="grid grid-cols-2 gap-3">
         {order.status === "pending" && (
           <>
              <button
               onClick={() => handleStatusUpdate("cancelled")}
               disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 disabled:opacity-50"
+              className="h-12 w-full flex items-center justify-center text-sm font-semibold text-destructive bg-destructive/10 rounded-xl hover:bg-destructive/20 disabled:opacity-50 transition-colors"
             >
               Reject
             </button>
             <button
               onClick={() => handleStatusUpdate("confirmed")}
               disabled={isLoading}
-              className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="h-12 w-full flex items-center justify-center text-sm font-semibold text-primary-foreground bg-primary rounded-xl hover:opacity-90 disabled:opacity-50 shadow-sm transition-opacity"
             >
               Confirm
             </button>
@@ -115,7 +120,7 @@ export function SellerOrderCard({ order }: { order: Order }) {
           <button
             onClick={() => handleStatusUpdate("delivering")}
             disabled={isLoading}
-            className="col-span-2 px-3 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+            className="col-span-2 h-12 w-full flex items-center justify-center text-sm font-semibold text-white bg-purple-600 rounded-xl hover:bg-purple-700 disabled:opacity-50 shadow-sm transition-colors"
           >
             Start Delivery 🛵
           </button>
@@ -125,7 +130,7 @@ export function SellerOrderCard({ order }: { order: Order }) {
           <button
             onClick={() => handleStatusUpdate("completed")}
             disabled={isLoading}
-            className="col-span-2 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
+            className="col-span-2 h-12 w-full flex items-center justify-center text-sm font-semibold text-white bg-green-600 rounded-xl hover:bg-green-700 disabled:opacity-50 shadow-sm transition-colors"
           >
             Complete Order ✅
           </button>

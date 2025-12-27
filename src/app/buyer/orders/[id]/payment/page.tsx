@@ -18,23 +18,23 @@ export default function PaymentPage() {
     }
   });
 
-  if (isLoading) return <div className="p-8 text-center">Loading order details...</div>;
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading order details...</div>;
   if (!order) return <div className="p-8 text-center text-red-500">Order not found</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+      <div className="bg-card w-full max-w-sm rounded-3xl shadow-xl overflow-hidden border border-border/50">
         {/* Header */}
-        <div className="bg-orange-600 p-6 text-white text-center">
-          <h1 className="text-2xl font-bold">Payment</h1>
-          <p className="text-orange-100">Complete your payment to start delivery</p>
+        <div className="bg-primary p-8 text-primary-foreground text-center">
+          <h1 className="text-2xl font-bold mb-1">Payment</h1>
+          <p className="opacity-90 text-sm">Complete your payment to start delivery</p>
         </div>
 
         {/* Order Summary */}
         <div className="p-6 space-y-6">
           <div className="text-center">
-            <p className="text-gray-500 mb-1">Total Amount</p>
-            <h2 className="text-4xl font-extrabold text-gray-900">
+            <p className="text-muted-foreground text-sm uppercase tracking-wide font-medium mb-2">Total Amount</p>
+            <h2 className="text-4xl font-extrabold text-foreground tracking-tight">
               {new Intl.NumberFormat("id-ID", {
                 style: "currency",
                 currency: "IDR",
@@ -43,13 +43,16 @@ export default function PaymentPage() {
             </h2>
           </div>
 
-          <div className="border-t border-gray-100 pt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Order Items</h3>
+          <div className="border-t border-border/50 pt-5">
+            <h3 className="text-sm font-semibold text-foreground mb-3">Order Items</h3>
             <div className="space-y-3">
               {order.items.map((item: any) => (
                  <div key={item.id} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">{item.quantity}x {item.productName}</span>
-                    <span className="font-medium">
+                    <div className="flex gap-2">
+                        <span className="font-semibold text-foreground">{item.quantity}x</span>
+                        <span className="text-muted-foreground">{item.productName}</span>
+                    </div>
+                    <span className="font-medium text-foreground">
                         {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(item.priceAtOrder * item.quantity)}
                     </span>
                  </div>
@@ -58,15 +61,17 @@ export default function PaymentPage() {
           </div>
           
           {/* Vendor Info */}
-          <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
-             <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-200">
-                {order.vendor.avatarUrl && (
+          <div className="flex items-center gap-3 bg-muted/50 p-4 rounded-xl border border-border/50">
+             <div className="relative w-10 h-10 rounded-full overflow-hidden bg-muted border border-border">
+                {order.vendor.avatarUrl ? (
                     <Image src={order.vendor.avatarUrl} alt="Vendor" fill className="object-cover" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">?</div>
                 )}
              </div>
              <div>
-                <p className="text-sm font-medium text-gray-900">{order.vendor.name}</p>
-                <p className="text-xs text-gray-500">Vendor</p>
+                <p className="text-sm font-semibold text-foreground">{order.vendor.name}</p>
+                <p className="text-xs text-muted-foreground">Vendor</p>
              </div>
           </div>
 
@@ -74,7 +79,7 @@ export default function PaymentPage() {
           <button
             onClick={() => payMutation.mutate({ orderId: id })}
             disabled={payMutation.isPending}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-200 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-lg"
           >
             {payMutation.isPending ? "Processing..." : "Saya Sudah Bayar 💸"}
           </button>

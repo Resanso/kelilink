@@ -33,12 +33,9 @@
   --radius: 0.5rem;
 }
 
-/* Dark mode overrides - Keeping minimal for now or allowing fallback */
-@media (prefers-color-scheme: dark) {
+/* Dark mode overrides removed to strictly follow the requested Brand Palette */
+/* @media (prefers-color-scheme: dark) {
   :root {
-    /* Optional: Undo this if you want the "Warm Cream" look everywhere. 
-       For now, providing a dark alternative for background to respect system pref,
-       but using the brand primary colors. */
     --background: #0a0a0a;
     --foreground: #ededed;
     --card: #171717;
@@ -50,7 +47,7 @@
     --border: #262626;
     --input: #262626;
   }
-}
+} */
 
 @theme inline {
   --color-background: var(--background);

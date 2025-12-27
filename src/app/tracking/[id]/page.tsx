@@ -43,7 +43,7 @@ export default function TrackingPage() {
   if (!order) return <div className="p-8 text-center text-red-500">Order not found</div>;
 
   return (
-    <div className="relative w-full h-[100dvh] overflow-hidden bg-gray-100">
+    <div className="relative w-full h-[100dvh] overflow-hidden bg-background">
        {/* Map Layer */}
        <div className="absolute inset-0 z-0">
           {mounted && (

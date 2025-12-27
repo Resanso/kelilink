@@ -13,7 +13,7 @@ export default function OrderCompletedPage() {
     if (!order) return <div className="text-center p-8 text-red-500">Order not found</div>;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
             <div className="bg-white rounded-3xl shadow-xl p-8 max-w-sm w-full text-center space-y-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-green-500"></div>
                 

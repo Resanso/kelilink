@@ -20,27 +20,40 @@ export default function BuyerOrdersPage() {
     }
   });
 
+  const checkoutAllMutation = trpc.orders.checkoutAllPending.useMutation({
+     onSuccess: () => {
+        utils.orders.getBuyerOrders.invalidate();
+        alert("All orders paid successfully! Drivers are on their way. 🏎️");
+     },
+     onError: (err) => {
+        alert("Checkout failed: " + err.message);
+     }
+  });
+
   const filteredOrders = orders?.filter((order) => {
     if (activeTab === "active") {
       return ["pending", "confirmed", "delivering"].includes(order.status);
     }
     return ["completed", "cancelled"].includes(order.status);
   });
+  
+  const pendingOrders = orders?.filter(o => o.status === "pending") || [];
+  const totalPendingPrice = pendingOrders.reduce((sum, order) => sum + order.totalPrice, 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-50 text-yellow-700 border border-yellow-200";
       case "confirmed":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-50 text-blue-700 border border-blue-200";
       case "delivering":
-        return "bg-indigo-100 text-indigo-800";
+        return "bg-purple-50 text-purple-700 border border-purple-200";
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-50 text-green-700 border border-green-200";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-50 text-red-700 border border-red-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -54,11 +67,11 @@ export default function BuyerOrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 p-4 max-w-md mx-auto">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white p-4 rounded-lg shadow-sm animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div key={i} className="bg-card w-full p-6 rounded-2xl shadow-sm border border-border/50 animate-pulse">
+            <div className="h-4 bg-muted rounded w-1/3 mb-4"></div>
+            <div className="h-10 bg-muted rounded w-full"></div>
           </div>
         ))}
       </div>
@@ -66,29 +79,29 @@ export default function BuyerOrdersPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-gray-50 min-h-screen pb-20">
-      <div className="sticky top-0 z-10 bg-white shadow-sm px-4 py-3">
-        <h1 className="text-xl font-bold text-gray-900">My Orders</h1>
+    <div className="max-w-md mx-auto bg-background min-h-screen pb-32">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md px-4 py-4 border-b border-border/50">
+        <h1 className="text-2xl font-bold text-foreground">My Orders</h1>
       </div>
 
-      <div className="px-4 mt-4">
-        <div className="flex space-x-2 bg-gray-200 p-1 rounded-lg mb-6">
+      <div className="px-4 mt-6">
+        <div className="flex bg-muted/50 p-1 rounded-xl mb-6">
           <button
             onClick={() => setActiveTab("active")}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
               activeTab === "active"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Active
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${
               activeTab === "history"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             History
@@ -96,15 +109,15 @@ export default function BuyerOrdersPage() {
         </div>
 
         {filteredOrders && filteredOrders.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {filteredOrders.map((order) => (
               <div
                 key={order.id}
-                className="block bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="bg-card w-full p-5 rounded-2xl shadow-sm border border-border/50 transition-shadow hover:shadow-md"
               >
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden relative">
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden bg-muted border border-border">
                         {order.vendor.avatarUrl ? (
                              <Image 
                                 src={order.vendor.avatarUrl} 
@@ -113,16 +126,14 @@ export default function BuyerOrdersPage() {
                                 className="object-cover"
                              />
                         ) : (
-                            <span className="flex items-center justify-center h-full w-full text-xs font-bold text-gray-500">
-                                {order.vendor.name?.charAt(0) || "V"}
-                            </span>
+                            <span className="flex items-center justify-center h-full w-full text-xs font-bold text-muted-foreground">?</span>
                         )}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 text-sm">
+                      <h3 className="font-semibold text-foreground text-base leading-tight">
                         {order.vendor.name || "Unknown Vendor"}
                       </h3>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {new Date(order.createdAt).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "short",
@@ -133,26 +144,39 @@ export default function BuyerOrdersPage() {
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(
                       order.status
                     )}`}
                   >
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    {order.status}
                   </span>
                 </div>
 
-                  <div className="flex justify-between items-center border-t border-gray-100 pt-3 mt-3">
+                  {/* Order Items */}
+                  <div className="bg-muted/30 rounded-xl p-3 mb-3 border border-border/50">
+                    <ul className="space-y-1">
+                        {order.items.map((item: any) => (
+                            <li key={item.id} className="text-sm flex justify-between text-foreground/80">
+                                <span>{item.quantity}x {item.productName}</span>
+                                {/* Optional: Show individual price if needed, but Total is usually enough here */}
+                            </li>
+                        ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex justify-between items-center border-t border-border/50 pt-4 mt-2">
                     <div>
-                      <p className="text-xs text-gray-500">Total Price</p>
-                      <p className="font-bold text-gray-900">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total</p>
+                      <p className="font-bold text-lg text-foreground">
                         {formatPrice(order.totalPrice)}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    
+                    <div className="flex items-center gap-2">
                         {(order.status === "pending") && (
                             <Link
                                 href={`/buyer/orders/${order.id}/payment`}
-                                className="px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition-colors shadow-sm"
+                                className="h-10 px-4 flex items-center bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity shadow-sm"
                             >
                                 Pay Now
                             </Link>
@@ -165,7 +189,7 @@ export default function BuyerOrdersPage() {
                             }
                             }}
                             disabled={cancelOrder.isPending}
-                            className="px-3 py-1 bg-red-50 text-red-600 text-xs font-medium rounded hover:bg-red-100 transition-colors disabled:opacity-50"
+                            className="h-10 px-4 flex items-center bg-destructive/10 text-destructive text-sm font-semibold rounded-xl hover:bg-destructive/20 transition-colors disabled:opacity-50"
                         >
                             {cancelOrder.isPending ? "..." : "Cancel"}
                         </button>
@@ -173,7 +197,7 @@ export default function BuyerOrdersPage() {
                          {(order.status === "delivering") && (
                             <Link
                                 href={`/tracking/${order.id}`}
-                                className="px-3 py-1 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors shadow-sm animate-pulse"
+                                className="h-10 px-4 flex items-center bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm animate-pulse"
                             >
                                 Track 📍
                             </Link>
@@ -185,38 +209,55 @@ export default function BuyerOrdersPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-10">
-            <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
+          <div className="text-center py-20">
+            <div className="bg-muted rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl grayscale">🧾</span>
             </div>
-            <h3 className="text-gray-900 font-medium mb-1">No orders found</h3>
-            <p className="text-gray-500 text-sm">
+            <h3 className="text-foreground text-lg font-bold mb-2">No orders found</h3>
+            <p className="text-muted-foreground text-sm max-w-xs mx-auto">
               {activeTab === "active"
-                ? "You don't have any active orders."
-                : "You haven't placed any orders yet."}
+                ? "You don't have any active food orders right now."
+                : "You haven't ordered any food yet."}
             </p>
             {activeTab === "history" && (
                 <button 
                     onClick={() => setActiveTab('active')}
-                    className="mt-4 text-blue-600 text-sm font-medium hover:text-blue-800"
+                    className="mt-6 text-primary font-semibold text-sm hover:underline"
                 >
                     View Active Orders
                 </button>
             )}
           </div>
         )}
+
+      {/* Checkout All Fixed Bar */}
+      {activeTab === "active" && pendingOrders.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border/50 p-4">
+               <div className="max-w-md mx-auto flex items-center justify-between gap-4">
+                    <div>
+                         <p className="text-xs font-medium text-muted-foreground uppercase">Total Pending</p>
+                         <p className="text-xl font-bold text-foreground">{formatPrice(totalPendingPrice)}</p>
+                    </div>
+                    <button
+                        onClick={() => checkoutAllMutation.mutate()}
+                        disabled={checkoutAllMutation.isPending}
+                        className="h-12 px-6 bg-primary text-primary-foreground font-bold rounded-2xl shadow-lg hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-50"
+                    >
+                        {checkoutAllMutation.isPending ? (
+                             <span>Processing...</span>
+                        ) : (
+                             <>
+                                <span>Checkout All ({pendingOrders.length})</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                             </>
+                        )}
+                    </button>
+               </div>
+          </div>
+      )}
+
       </div>
     </div>
   );
