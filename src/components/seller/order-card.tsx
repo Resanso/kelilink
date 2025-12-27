@@ -4,26 +4,38 @@ import { trpc } from "@/lib/trpc/client";
 import { type RouterOutputs } from "@/lib/trpc/client"; 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Order = RouterOutputs["orders"]["getVendorOrders"][number];
 
 export function SellerOrderCard({ order }: { order: Order }) {
   const utils = trpc.useUtils();
-  const updateStatus = trpc.orders.updateStatus.useMutation({
-    onSuccess: () => {
-      utils.orders.getVendorOrders.invalidate();
-    },
+  const router = useRouter(); // Import needed
+
+  const acceptOrder = trpc.orders.acceptOrder.useMutation({ onSuccess: () => utils.orders.getVendorOrders.invalidate() });
+  const rejectOrder = trpc.orders.rejectOrder.useMutation({ onSuccess: () => utils.orders.getVendorOrders.invalidate() });
+  const startDelivery = trpc.orders.startDelivery.useMutation({ 
+      onSuccess: () => {
+          utils.orders.getVendorOrders.invalidate();
+          router.push(`/seller/orders/${order.id}/delivery`);
+      }
   });
+  const completeOrder = trpc.orders.completeOrder.useMutation({ onSuccess: () => utils.orders.getVendorOrders.invalidate() });
 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleStatusUpdate = async (newStatus: "confirmed" | "delivering" | "completed" | "cancelled") => {
     setIsLoading(true);
     try {
-      await updateStatus.mutateAsync({
-        orderId: order.id,
-        newStatus,
-      });
+      if (newStatus === "confirmed") {
+          await acceptOrder.mutateAsync({ orderId: order.id });
+      } else if (newStatus === "cancelled") {
+          await rejectOrder.mutateAsync({ orderId: order.id });
+      } else if (newStatus === "delivering") {
+          await startDelivery.mutateAsync({ orderId: order.id });
+      } else if (newStatus === "completed") {
+          await completeOrder.mutateAsync({ orderId: order.id });
+      }
     } catch (error) {
       alert("Failed to update status");
       console.error(error);
@@ -67,7 +79,7 @@ export function SellerOrderCard({ order }: { order: Order }) {
           </div>
           <div>
             <h3 className="font-semibold text-foreground text-lg leading-tight">{order.buyer.name || "Unknown Buyer"}</h3>
-            <span className={`inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full font-medium ${statusColors[order.status] || "bg-muted text-muted-foreground"}`}>
+            <span className={`inline-block mt-1 text-xs px-2.5 py-0.5 rounded-full font-medium ${statusColors[order.status as keyof typeof statusColors] || "bg-muted text-muted-foreground"}`}>
               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
             </span>
           </div>
@@ -128,11 +140,11 @@ export function SellerOrderCard({ order }: { order: Order }) {
 
         {order.status === "delivering" && (
           <button
-            onClick={() => handleStatusUpdate("completed")}
+            onClick={() => router.push(`/seller/orders/${order.id}/delivery`)}
             disabled={isLoading}
-            className="col-span-2 h-12 w-full flex items-center justify-center text-sm font-semibold text-white bg-green-600 rounded-xl hover:bg-green-700 disabled:opacity-50 shadow-sm transition-colors"
+            className="col-span-2 h-12 w-full flex items-center justify-center text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 shadow-sm transition-colors"
           >
-            Complete Order ✅
+            Continue Delivery ➡️
           </button>
         )}
       </div>

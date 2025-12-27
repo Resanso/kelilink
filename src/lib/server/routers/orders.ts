@@ -252,6 +252,13 @@ export const ordersRouter = router({
         await ctx.db.update(ordersTable).set({ status: "cancelled" }).where(eq(ordersTable.id, input.orderId));
         return { success: true };
     }),
+
+  cancelOrder: protectedProcedure
+    .input(z.object({ orderId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+        await ctx.db.update(ordersTable).set({ status: "cancelled" }).where(eq(ordersTable.id, input.orderId));
+        return { success: true };
+    }),
     
   startDelivery: protectedProcedure
     .input(z.object({ orderId: z.string().uuid() }))
