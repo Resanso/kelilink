@@ -28,7 +28,7 @@ export function AuthForm() {
               name,
               role,
             },
-            emailRedirectTo: `${location.origin}/auth/callback`,
+            emailRedirectTo: `${location.origin}`,
           },
         });
 
