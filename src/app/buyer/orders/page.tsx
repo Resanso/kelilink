@@ -172,7 +172,7 @@ export default function BuyerOrdersPage() {
                         )}
                          {(order.status === "delivering") && (
                             <Link
-                                href={`/buyer/orders/${order.id}/tracking`}
+                                href={`/tracking/${order.id}`}
                                 className="px-3 py-1 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition-colors shadow-sm animate-pulse"
                             >
                                 Track 📍

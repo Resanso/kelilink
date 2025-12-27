@@ -11,7 +11,7 @@ export default function PaymentPage() {
   const { data: order, isLoading } = trpc.orders.getOrderById.useQuery({ orderId: id });
   const payMutation = trpc.orders.payOrder.useMutation({
     onSuccess: () => {
-      router.push(`/buyer/orders/${id}/tracking`);
+      router.push(`/tracking/${id}`);
     },
     onError: (err) => {
       alert("Payment failed: " + err.message);

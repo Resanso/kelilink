@@ -332,4 +332,29 @@ export const ordersRouter = router({
 
       return { success: true };
     }),
+
+  confirmDelivery: protectedProcedure
+    .input(z.object({ orderId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { orderId } = input;
+      const buyerId = ctx.session.user.id;
+
+      const [order] = await ctx.db
+        .select()
+        .from(ordersTable)
+        .where(and(eq(ordersTable.id, orderId), eq(ordersTable.buyerId, buyerId)));
+
+      if (!order) throw new Error("Order not found or unauthorized");
+
+      if (order.status !== "delivering") {
+        throw new Error("Order is not in delivering status");
+      }
+
+      await ctx.db
+        .update(ordersTable)
+        .set({ status: "completed" })
+        .where(eq(ordersTable.id, orderId));
+
+      return { success: true };
+    }),
 });

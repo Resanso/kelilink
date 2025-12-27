@@ -23,19 +23,20 @@ export default function TrackingPage() {
 
   const confirmMutation = trpc.orders.confirmDelivery.useMutation({
       onSuccess: () => {
+          console.log("Delivery confirmed! Redirecting...");
           router.replace(`/buyer/orders/${id}/completed`);
       },
       onError: (err) => {
           console.error("Auto-completion failed:", err);
-          // Optional: fallback to manual button?
+          alert("Auto-completion failed. Please use the button.");
       }
   });
 
   const handleArrival = () => {
-    // Only confirm if not already completed/cancelled
-    if (order && order.status === 'delivering') {
-        confirmMutation.mutate({ orderId: id });
-    }
+    console.log("Handle Arrival Triggered via Animation.");
+    // We attempt to confirm regardless of client-side status to avoid synchronization issues.
+    // The backend will reject it if it's not 'delivering', which is fine.
+    confirmMutation.mutate({ orderId: id });
   };
 
   if (isLoading) return <div className="p-8 text-center">Loading tracking info...</div>;
@@ -77,18 +78,6 @@ export default function TrackingPage() {
             >
                 Back to Orders
             </Link>
-
-            <button
-                onClick={() => {
-                    if (confirm("Have you received your order?")) {
-                         confirmMutation.mutate({ orderId: id });
-                    }
-                }}
-                disabled={confirmMutation.isPending}
-                className="block w-full mt-3 bg-emerald-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg text-center transition-colors hover:bg-emerald-700 disabled:opacity-50"
-            >
-                {confirmMutation.isPending ? "Confirming..." : "I've Received My Order"}
-            </button>
        </div>
     </div>
   );
