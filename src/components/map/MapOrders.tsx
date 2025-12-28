@@ -19,9 +19,9 @@ const iconCourier = new L.Icon({
     popupAnchor: [0, -45]
 });
 
-// Mock Coordinates (Jakarta Area)
-const START_POS: [number, number] = [-6.175392, 106.827153]; // Monas
-const END_POS: [number, number] = [-6.194957, 106.823077];   // Bundaran HI
+// Mock Coordinates (Bandung - Telkom University Area)
+const START_POS: [number, number] = [-6.9751, 107.6319]; // Telkom University
+const END_POS: [number, number] = [-6.9720, 107.6300];   // Nearby Location
 
 // Helper to interpolate between two points
 function lerp(start: number, end: number, t: number) {
@@ -147,12 +147,20 @@ function MapBounds({ coords }: { coords: [number, number][] }) {
 interface MapOrdersProps {
     vendorName?: string;
     buyerName?: string;
+    vendorLocation?: [number, number];
+    buyerLocation?: [number, number];
     onArrival?: () => void;
 }
 
-export default function MapOrders({ vendorName = "Vendor", buyerName = "You", onArrival }: MapOrdersProps) {
-    const vendorPos = START_POS;
-    const buyerPos = END_POS;
+export default function MapOrders({ 
+    vendorName = "Vendor", 
+    buyerName = "You", 
+    vendorLocation,
+    buyerLocation,
+    onArrival 
+}: MapOrdersProps) {
+    const vendorPos = vendorLocation || START_POS;
+    const buyerPos = buyerLocation || END_POS;
     const [routeCoords, setRouteCoords] = useState<[number, number][]>([vendorPos, buyerPos]);
     const [isRouting, setIsRouting] = useState(true);
 

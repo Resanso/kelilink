@@ -16,7 +16,7 @@ export const usersRouter = router({
         return { success: true };
     }),
 
-  updateDummyLocation: protectedProcedure
+    updateDummyLocation: protectedProcedure
     .input(z.object({
         latitude: z.number(),
         longitude: z.number()
@@ -31,4 +31,16 @@ export const usersRouter = router({
         }).where(eq(usersTable.id, userId));
         return { success: true };
     }),
+
+  getActiveSellers: protectedProcedure.query(async () => {
+    // RETURNS DUMMY DATA FOR DEMO
+    // Center: Telkom University [-6.9751, 107.6319]
+    return [
+        { id: "driver-1", name: "Mang Ujang (Bakso)", avatarUrl: null, latitude: -6.9755, longitude: 107.6325 },
+        { id: "driver-2", name: "Ceu Iroh (Seblak)", avatarUrl: null, latitude: -6.9748, longitude: 107.6310 },
+        { id: "driver-3", name: "Kang Asep (Siomay)", avatarUrl: null, latitude: -6.9760, longitude: 107.6315 },
+        { id: "driver-4", name: "Warung Nasi padang", avatarUrl: null, latitude: -6.9745, longitude: 107.6330 },
+        { id: "driver-5", name: "Es Cendol Elizabeth", avatarUrl: null, latitude: -6.9758, longitude: 107.6305 },
+    ];
+  }),
 });
