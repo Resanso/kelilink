@@ -8,15 +8,147 @@ import Image from "next/image";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { WeatherWidget } from "@/components/weather/weather-widget";
 
+function ProductsTab() {
+  const [isAdding, setIsAdding] = useState(false);
+  const [productName, setProductName] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+  const [productImage, setProductImage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { data: products, refetch } = trpc.products.getMyProducts.useQuery();
+  const createProduct = trpc.products.create.useMutation();
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await createProduct.mutateAsync({
+        name: productName,
+        price: Number(productPrice),
+        imageUrl: productImage || undefined,
+        description: "Added from dashboard",
+      });
+      setProductName("");
+      setProductPrice("");
+      setProductImage("");
+      setIsAdding(false);
+      refetch();
+    } catch (error) {
+      alert("Failed to add product");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-border/50">
+         <h2 className="font-bold text-lg">My Products ({products?.length || 0})</h2>
+         <button 
+           onClick={() => setIsAdding(!isAdding)}
+           className="bg-primary text-primary-foreground px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:opacity-90"
+         >
+           {isAdding ? "Cancel" : "+ Add New"}
+         </button>
+      </div>
+
+      {isAdding && (
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-border/50 animate-in fade-in slide-in-from-top-4">
+            <h3 className="font-bold mb-4">Add New Product</h3>
+            <form onSubmit={handleAddProduct} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Product Name</label>
+                <input
+                  type="text"
+                  required
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/50 outline-none"
+                  placeholder="e.g. Nasi Goreng Spesial"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Price (IDR)</label>
+                <input
+                  type="number"
+                  required
+                  value={productPrice}
+                  onChange={(e) => setProductPrice(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/50 outline-none"
+                  placeholder="e.g. 25000"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Image URL (Optional)</label>
+                <input
+                  type="text"
+                  value={productImage}
+                  onChange={(e) => setProductImage(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/50 outline-none"
+                  placeholder="https://..."
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-opacity"
+              >
+                {isLoading ? "Saving..." : "Save Product"}
+              </button>
+            </form>
+          </div>
+      )}
+
+      <div className="grid gap-4">
+        {products?.map((product) => (
+           <div key={product.id} className="bg-white p-4 rounded-xl shadow-sm border border-border/50 flex gap-4">
+              <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
+                 {product.imageUrl ? (
+                    <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                 ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl">🍲</div>
+                 )}
+              </div>
+              <div className="flex-1">
+                 <h3 className="font-bold text-foreground">{product.name}</h3>
+                 <p className="text-primary font-bold mt-1">
+                    {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(product.price)}
+                 </p>
+                 <div className="flex items-center gap-2 mt-2">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${product.isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {product.isAvailable ? "Available" : "Unavailable"}
+                    </span>
+                 </div>
+              </div>
+           </div>
+        ))}
+        {products?.length === 0 && !isAdding && (
+            <p className="text-center text-muted-foreground py-8">No products yet. Add one!</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SellerDashboardPage() {
-  const [activeTab, setActiveTab] = useState<"incoming" | "active" | "history">("incoming");
+  const [activeTab, setActiveTab] = useState<"incoming" | "active" | "history" | "products">("incoming");
   const [isVendorOpen, setIsVendorOpen] = useState(false);
   const router = useRouter();
   
   const utils = trpc.useUtils();
   
   // Queries
-  const { data: orders, isLoading } = trpc.orders.getVendorOrders.useQuery({ status: activeTab });
+  const { data: profile, isLoading: isProfileLoading } = trpc.users.getProfile.useQuery();
+  
+  const orderStatus = activeTab === "products" ? undefined : activeTab;
+  const { data: orders, isLoading } = trpc.orders.getVendorOrders.useQuery(
+      { status: orderStatus as "incoming" | "active" | "history" }, 
+      { enabled: activeTab !== "products" }
+  );
+
+  if (!isProfileLoading && profile && !profile.isOnboarded) {
+      router.push("/seller/onboarding");
+  }
   
   // Mutations
   const updateStatusMutation = trpc.users.updateVendorStatus.useMutation({
@@ -88,7 +220,7 @@ export default function SellerDashboardPage() {
       {/* Tabs */}
       <div className="px-4 mt-6">
         <div className="flex bg-white p-1 rounded-xl shadow-sm border border-border/50">
-             {(["incoming", "active", "history"] as const).map((tab) => (
+             {(["active", "history", "products"] as const).map((tab) => (
                  <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -104,7 +236,9 @@ export default function SellerDashboardPage() {
 
       {/* Orders List */}
       <div className="px-4 mt-6 space-y-4">
-          {isLoading ? (
+          {activeTab === "products" ? (
+             <ProductsTab />
+          ) : isLoading ? (
               <p className="text-center text-muted-foreground py-10">Loading orders...</p>
           ) : orders?.length === 0 ? (
               <div className="text-center py-20 flex flex-col items-center opacity-50">

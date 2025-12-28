@@ -11,6 +11,9 @@ export const usersTable = pgTable("users", {
   isActive: boolean("is_active").default(false),
   currentLatitude: text("current_latitude"),
   currentLongitude: text("current_longitude"),
+  businessName: text("business_name"),
+  businessDescription: text("business_description"),
+  isOnboarded: boolean("is_onboarded").default(false),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

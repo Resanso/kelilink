@@ -8,11 +8,32 @@ export const usersRouter = router({
     return await ctx.db.select().from(usersTable);
   }),
 
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const [user] = await ctx.db.select().from(usersTable).where(eq(usersTable.id, userId));
+    return user;
+  }),
+
   updateVendorStatus: protectedProcedure
     .input(z.boolean())
     .mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         await ctx.db.update(usersTable).set({ isActive: input }).where(eq(usersTable.id, userId));
+        return { success: true };
+    }),
+
+    updateBusinessProfile: protectedProcedure
+    .input(z.object({
+        businessName: z.string(),
+        businessDescription: z.string()
+    }))
+    .mutation(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
+        await ctx.db.update(usersTable).set({
+            businessName: input.businessName,
+            businessDescription: input.businessDescription,
+            isOnboarded: true
+        }).where(eq(usersTable.id, userId));
         return { success: true };
     }),
 

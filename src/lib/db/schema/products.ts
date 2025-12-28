@@ -7,6 +7,7 @@ export const productsTable = pgTable("products", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  description: text("description"),
   price: integer("price").notNull(),
   imageUrl: text("image_url"),
   isAvailable: boolean("is_available").notNull().default(true),

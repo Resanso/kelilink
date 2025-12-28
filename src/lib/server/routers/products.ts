@@ -25,4 +25,31 @@ export const productsRouter = router({
 
     return products;
   }),
+
+  create: protectedProcedure
+    .input(z.object({
+        name: z.string(),
+        description: z.string().optional(),
+        price: z.number(),
+        imageUrl: z.string().optional()
+    }))
+    .mutation(async ({ ctx, input }) => {
+        await ctx.db.insert(productsTable).values({
+            vendorId: ctx.session.user.id,
+            name: input.name,
+            description: input.description,
+            price: input.price,
+            imageUrl: input.imageUrl,
+            isAvailable: true
+        });
+        return { success: true };
+    }),
+
+  getMyProducts: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db
+      .select()
+      .from(productsTable)
+      .where(eq(productsTable.vendorId, ctx.session.user.id))
+      .orderBy(productsTable.createdAt);
+  }),
 });
