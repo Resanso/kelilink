@@ -83,12 +83,12 @@ export function AuthForm() {
     <div className="w-full space-y-8">
       <div className="text-left">
         <h2 className="text-5xl font-extrabold text-[#0A2540] tracking-tight mb-2">
-          {isSignUp ? "SIGN UP" : "LOGIN"}
+          {isSignUp ? "DAFTAR" : "MASUK"}
         </h2>
         <p className="text-gray-500 text-lg">
           {isSignUp
-            ? "Create your account to get started"
-            : "Welcome back! Please sign in to your account."}
+            ? "Buat akun untuk memulai"
+            : "Selamat datang kembali! Silakan masuk ke akun Anda."}
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export function AuthForm() {
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"
             >
-              Name
+              Nama
             </label>
             <input
               id="name"
@@ -108,7 +108,7 @@ export function AuthForm() {
               onChange={(e) => setName(e.target.value)}
               required={isSignUp}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Your name"
+              placeholder="Nama lengkap Anda"
             />
           </div>
         )}
@@ -127,7 +127,7 @@ export function AuthForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="your@email.com"
+            placeholder="email@anda.com"
           />
         </div>
 
@@ -136,7 +136,7 @@ export function AuthForm() {
             htmlFor="password"
             className="block text-sm font-medium text-gray-700"
           >
-            Password
+            Kata Sandi
           </label>
           <input
             id="password"
@@ -146,14 +146,14 @@ export function AuthForm() {
             required
             minLength={8}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Minimum 8 characters"
+            placeholder="Minimal 8 karakter"
           />
         </div>
 
         {isSignUp && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              I want to be a:
+              Saya ingin mendaftar sebagai:
             </label>
             <div className="flex space-x-4">
               <label className="flex items-center">
@@ -165,7 +165,7 @@ export function AuthForm() {
                   onChange={(e) => setRole(e.target.value)}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
-                <span className="ml-2 text-sm text-gray-700">Buyer</span>
+                <span className="ml-2 text-sm text-gray-700">Pembeli</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -176,7 +176,7 @@ export function AuthForm() {
                   onChange={(e) => setRole(e.target.value)}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
-                <span className="ml-2 text-sm text-gray-700">Vendor</span>
+                <span className="ml-2 text-sm text-gray-700">Penjual</span>
               </label>
             </div>
           </div>
@@ -193,7 +193,7 @@ export function AuthForm() {
           disabled={loading}
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+          {loading ? "Memuat..." : isSignUp ? "Daftar" : "Masuk"}
         </button>
       </form>
 
@@ -208,8 +208,8 @@ export function AuthForm() {
           className="text-blue-600 hover:text-blue-500 text-sm"
         >
           {isSignUp
-            ? "Already have an account? Sign in"
-            : "Don't have an account? Sign up"}
+            ? "Sudah punya akun? Masuk"
+            : "Belum punya akun? Daftar"}
         </button>
       </div>
     </div>

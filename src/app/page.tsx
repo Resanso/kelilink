@@ -62,7 +62,7 @@ export default function Home() {
         
         <div className="relative z-10 space-y-6 max-w-lg">
           <h1 className="text-5xl font-bold leading-tight">
-            Welcome To<br />Kelilink
+            Selamat Datang di<br />Kelilink
           </h1>
           <p className="text-blue-100 text-lg leading-relaxed opacity-90">
             Solusi cerdas untuk menemukan dan memesan makanan atau produk dari pedagang keliling di sekitar Anda. Membantu pedagang mengelola inventaris, menerima pesanan real-time, dan mengoptimalkan rute agar pelayanan lebih cepat dan terorganisir.
