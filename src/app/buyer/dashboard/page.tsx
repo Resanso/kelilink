@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { FloatingOrderButton } from "@/components/buyer/floating-order-button";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { WeatherWidget } from "@/components/weather/weather-widget";
 
 import dynamic from "next/dynamic";
 
@@ -109,7 +110,8 @@ export default function BuyerDashboard() {
                     </div>
                 </div>
                 {/* Profile Avatar Trigger (Static for now) */}
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
+                    <WeatherWidget />
                     <LogoutButton />
                 </div>
             </div>

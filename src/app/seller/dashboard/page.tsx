@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from 'next/link';
 import Image from "next/image";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { WeatherWidget } from "@/components/weather/weather-widget";
 
 export default function SellerDashboardPage() {
   const [activeTab, setActiveTab] = useState<"incoming" | "active" | "history">("incoming");
@@ -64,7 +65,10 @@ export default function SellerDashboardPage() {
                    <p className="text-xs text-muted-foreground">Seller Dashboard</p>
                </div>
            </div>
-           <LogoutButton />
+           <div className="flex items-center gap-2">
+               <WeatherWidget />
+               <LogoutButton />
+           </div>
         </div>
 
         <div className="flex items-center justify-between bg-muted/30 p-4 rounded-2xl border border-border/50">
