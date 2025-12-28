@@ -17,6 +17,7 @@ export const ordersRouter = router({
         vendor: {
           name: usersTable.name,
           avatarUrl: usersTable.avatarUrl,
+          phoneNumber: usersTable.phoneNumber,
         },
         item: orderItemsTable,
         product: {
@@ -291,6 +292,7 @@ export const ordersRouter = router({
           vendor: {
             name: vendorTable.name,
             avatarUrl: vendorTable.avatarUrl,
+            phoneNumber: vendorTable.phoneNumber,
           },
           buyer: {
             name: buyerTable.name,

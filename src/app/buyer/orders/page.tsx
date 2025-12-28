@@ -141,8 +141,18 @@ export default function BuyerOrdersPage() {
                           minute: "2-digit",
                         })}
                       </p>
+                      {order.vendor.phoneNumber && (
+                           <a 
+                             href={`https://wa.me/${order.vendor.phoneNumber.replace(/^0/, '62')}`}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="text-xs text-green-600 font-medium hover:underline flex items-center gap-1 mt-1"
+                           >
+                               <span>📞 Chat Seller</span>
+                           </a>
+                      )}
+                      </div>
                     </div>
-                  </div>
                   <span
                     className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(
                       order.status

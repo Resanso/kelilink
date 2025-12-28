@@ -197,9 +197,22 @@ export default function BuyerDashboard() {
                             />
                             )}
                         </div>
-                        <span className="text-xs font-semibold text-foreground truncate max-w-[100px]">
-                            {product.vendor.name}
-                        </span>
+                        <div className="flex flex-col min-w-0">
+                             <span className="text-xs font-semibold text-foreground truncate max-w-[100px]">
+                                 {product.vendor.name}
+                             </span>
+                             {product.vendor.phoneNumber && (
+                                <a 
+                                  href={`https://wa.me/${product.vendor.phoneNumber.replace(/^0/, '62')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] text-green-600 hover:underline flex items-center gap-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                    <span>📞 Chat</span>
+                                </a>
+                             )}
+                        </div>
                     </div>
                 </div>
                 

@@ -11,6 +11,7 @@ export default function SellerOnboardingPage() {
 
   // Form State
   const [businessName, setBusinessName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
   const [productName, setProductName] = useState("");
   const [productPrice, setProductPrice] = useState("");
@@ -37,6 +38,7 @@ export default function SellerOnboardingPage() {
       await updateProfile.mutateAsync({
         businessName,
         businessDescription,
+        phoneNumber,
       });
       setStep(2);
     } catch (error) {
@@ -101,6 +103,17 @@ export default function SellerOnboardingPage() {
                   onChange={(e) => setBusinessName(e.target.value)}
                   className="w-full p-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/50 outline-none"
                   placeholder="e.g. Warung Ibu Eni"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">WhatsApp Number</label>
+                <input
+                  type="tel"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-input bg-background focus:ring-2 focus:ring-primary/50 outline-none"
+                  placeholder="e.g. 08123456789"
                 />
               </div>
               <div>

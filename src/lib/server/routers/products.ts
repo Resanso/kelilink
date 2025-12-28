@@ -17,6 +17,7 @@ export const productsRouter = router({
         vendor: {
           name: usersTable.name,
           avatarUrl: usersTable.avatarUrl,
+          phoneNumber: usersTable.phoneNumber,
         },
       })
       .from(productsTable)

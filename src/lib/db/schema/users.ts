@@ -13,6 +13,7 @@ export const usersTable = pgTable("users", {
   currentLongitude: text("current_longitude"),
   businessName: text("business_name"),
   businessDescription: text("business_description"),
+  phoneNumber: text("phone_number"),
   isOnboarded: boolean("is_onboarded").default(false),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),

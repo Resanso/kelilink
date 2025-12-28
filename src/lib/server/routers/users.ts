@@ -25,13 +25,15 @@ export const usersRouter = router({
     updateBusinessProfile: protectedProcedure
     .input(z.object({
         businessName: z.string(),
-        businessDescription: z.string()
+        businessDescription: z.string(),
+        phoneNumber: z.string()
     }))
     .mutation(async ({ ctx, input }) => {
         const userId = ctx.session.user.id;
         await ctx.db.update(usersTable).set({
             businessName: input.businessName,
             businessDescription: input.businessDescription,
+            phoneNumber: input.phoneNumber,
             isOnboarded: true
         }).where(eq(usersTable.id, userId));
         return { success: true };
