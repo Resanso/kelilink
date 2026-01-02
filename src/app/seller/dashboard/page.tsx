@@ -186,15 +186,18 @@ export default function SellerDashboardPage() {
       <div className="bg-white p-6 rounded-b-3xl shadow-sm border-b border-border/50 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-6">
            <div className="flex items-center gap-3">
-               <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden">
-                   {/* Placeholder Avatar */}
-                   <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                       <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                   </svg>
+               <div className="w-12 h-12 bg-gray-200 rounded-full overflow-hidden relative">
+                   {profile?.avatarUrl ? (
+                        <Image src={profile.avatarUrl} alt={profile.businessName || "Avatar"} fill className="object-cover" />
+                   ) : (
+                        <svg className="w-full h-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                   )}
                </div>
                <div>
-                   <h1 className="font-bold text-lg text-foreground">Kedai Paman Joe</h1>
-                   <p className="text-xs text-muted-foreground">Seller Dashboard</p>
+                   <h1 className="font-bold text-lg text-foreground">{profile?.businessName || profile?.name || "My Kedai"}</h1>
+                   <p className="text-xs text-muted-foreground">{profile?.businessDescription || "Seller Dashboard"}</p>
                </div>
            </div>
            <div className="flex items-center gap-2">
