@@ -150,10 +150,14 @@ export default function SellerDashboardPage() {
       router.push("/seller/onboarding");
   }
   
+  // Location State
+  const [watchId, setWatchId] = useState<number | null>(null);
+
   // Mutations
   const updateStatusMutation = trpc.users.updateVendorStatus.useMutation({
-      onSuccess: () => utils.users.getUsers.invalidate() // Optional refresh
+      onSuccess: () => utils.users.getUsers.invalidate() 
   });
+  const updateLocationMutation = trpc.users.updateLocation.useMutation();
   
   const acceptOrder = trpc.orders.acceptOrder.useMutation({ onSuccess: () => utils.orders.getVendorOrders.invalidate() });
   const rejectOrder = trpc.orders.rejectOrder.useMutation({ onSuccess: () => utils.orders.getVendorOrders.invalidate() });
@@ -165,11 +169,53 @@ export default function SellerDashboardPage() {
       } 
   });
 
-  // Toggle Vendor Status
+  // Toggle Vendor Status with GPS
   const toggleStatus = () => {
-      const newState = !isVendorOpen;
-      setIsVendorOpen(newState);
-      updateStatusMutation.mutate(newState);
+      if (isVendorOpen) {
+          // Closing
+          setIsVendorOpen(false);
+          updateStatusMutation.mutate(false);
+          if (watchId !== null) {
+              navigator.geolocation.clearWatch(watchId);
+              setWatchId(null);
+          }
+      } else {
+          // Opening
+          if (!("geolocation" in navigator)) {
+              alert("Geolocation is not supported by your browser");
+              return;
+          }
+
+          setIsVendorOpen(true);
+          
+          // Get immediate position first
+          navigator.geolocation.getCurrentPosition(
+              (position) => {
+                  updateLocationMutation.mutate({
+                      latitude: position.coords.latitude,
+                      longitude: position.coords.longitude
+                  });
+              },
+              (error) => {
+                  console.error("Error getting location:", error);
+                  alert("Please allow location access to go online.");
+                  setIsVendorOpen(false); // Revert UI
+              }
+          );
+
+          // Watch for changes
+          const id = navigator.geolocation.watchPosition(
+              (position) => {
+                  updateLocationMutation.mutate({
+                      latitude: position.coords.latitude,
+                      longitude: position.coords.longitude
+                  });
+              },
+              (error) => console.error("Location watch error:", error),
+              { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+          );
+          setWatchId(id);
+      }
   };
 
   const formatPrice = (price: number) => {

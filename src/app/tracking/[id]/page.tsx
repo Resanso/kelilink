@@ -50,6 +50,11 @@ export default function TrackingPage() {
               <MapOrders 
                 vendorName={order.vendor.name || "Vendor"} 
                 buyerName="You" 
+                vendorLocation={
+                    order.vendor.currentLatitude && order.vendor.currentLongitude 
+                    ? [Number(order.vendor.currentLatitude), Number(order.vendor.currentLongitude)] 
+                    : undefined 
+                }
                 onArrival={handleArrival}
               />
           )}

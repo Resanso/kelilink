@@ -173,7 +173,7 @@ export default function BuyerDashboard() {
                     >
     
                 <div className="relative h-56 w-full bg-muted">
-                    {product.imageUrl ? (
+                    {product.imageUrl && (product.imageUrl.startsWith('http') || product.imageUrl.startsWith('/')) ? (
                     <Image
                         src={product.imageUrl}
                         alt={product.name}
@@ -188,7 +188,7 @@ export default function BuyerDashboard() {
                     {/* Vendor Chip */}
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md rounded-full px-3 py-1 flex items-center gap-2 shadow-sm border border-white/50">
                         <div className="relative w-5 h-5 rounded-full overflow-hidden bg-muted">
-                            {product.vendor.avatarUrl && (
+                            {product.vendor.avatarUrl && (product.vendor.avatarUrl.startsWith('http') || product.vendor.avatarUrl.startsWith('/')) && (
                             <Image 
                                 src={product.vendor.avatarUrl} 
                                 alt={product.vendor.name || "Vendor"} 

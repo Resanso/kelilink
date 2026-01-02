@@ -8,6 +8,13 @@
       "when": 1763882675901,
       "tag": "0000_parched_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1767366264212,
+      "tag": "0001_big_tinkerer",
+      "breakpoints": true
     }
   ]
 }

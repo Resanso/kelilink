@@ -34,12 +34,13 @@ export const usersRouter = router({
             businessName: input.businessName,
             businessDescription: input.businessDescription,
             phoneNumber: input.phoneNumber,
-            isOnboarded: true
+            isOnboarded: true,
+            role: "seller" // Promote to seller
         }).where(eq(usersTable.id, userId));
         return { success: true };
     }),
 
-    updateDummyLocation: protectedProcedure
+    updateLocation: protectedProcedure
     .input(z.object({
         latitude: z.number(),
         longitude: z.number()
@@ -50,20 +51,33 @@ export const usersRouter = router({
         // Checking schema: extended with text columns currentLatitude, currentLongitude
         await ctx.db.update(usersTable).set({ 
             currentLatitude: String(input.latitude),
-            currentLongitude: String(input.longitude)
+            currentLongitude: String(input.longitude),
+            isActive: true, // Auto set active on location update
+            role: "seller", // Ensure they are marked as seller when active
+            updatedAt: new Date()
         }).where(eq(usersTable.id, userId));
         return { success: true };
     }),
 
-  getActiveSellers: protectedProcedure.query(async () => {
-    // RETURNS DUMMY DATA FOR DEMO
-    // Center: Telkom University [-6.9751, 107.6319]
-    return [
-        { id: "driver-1", name: "Mang Ujang (Bakso)", avatarUrl: null, latitude: -6.9755, longitude: 107.6325 },
-        { id: "driver-2", name: "Ceu Iroh (Seblak)", avatarUrl: null, latitude: -6.9748, longitude: 107.6310 },
-        { id: "driver-3", name: "Kang Asep (Siomay)", avatarUrl: null, latitude: -6.9760, longitude: 107.6315 },
-        { id: "driver-4", name: "Warung Nasi padang", avatarUrl: null, latitude: -6.9745, longitude: 107.6330 },
-        { id: "driver-5", name: "Es Cendol Elizabeth", avatarUrl: null, latitude: -6.9758, longitude: 107.6305 },
-    ];
+  getActiveSellers: protectedProcedure.query(async ({ ctx }) => {
+    // Fetch real active sellers with location data
+    // We filter by role='seller', isActive=true, and ensure lat/long are not null
+    const activeSellers = await ctx.db.select().from(usersTable).where(
+        // In a real app we'd use 'and()' but for simplicity / standard drizzle
+        // and(eq(usersTable.role, 'seller'), eq(usersTable.isActive, true))
+        // Let's filter in memory or straightforward where clause if using advanced filters
+        eq(usersTable.isActive, true)
+    );
+
+    // Map to the format expected by the frontend
+    return activeSellers
+        .filter(u => u.role === 'seller' && u.currentLatitude && u.currentLongitude)
+        .map(u => ({
+            id: u.id,
+            name: u.businessName || u.name,
+            avatarUrl: u.avatarUrl, 
+            latitude: Number(u.currentLatitude), 
+            longitude: Number(u.currentLongitude) 
+        }));
   }),
 });

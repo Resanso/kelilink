@@ -185,7 +185,7 @@ export default function MapOrders({
         }
         
         fetchRoute();
-    }, []);
+    }, [vendorPos, buyerPos]);
 
     return (
         <MapContainer 

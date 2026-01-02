@@ -17,12 +17,11 @@ export default function SellerDeliveryPage() {
   const router = useRouter();
   const orderId = params.id as string;
   const [mounted, setMounted] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<[number, number] | undefined>(undefined);
 
   const utils = trpc.useUtils();
   const { data: order, isLoading, error } = trpc.orders.getOrderById.useQuery({ orderId });
 
-  // const updateLocation = trpc.users.updateDummyLocation.useMutation(); // Handled by MapOrders simulation now
-  
   const completeOrder = trpc.orders.completeOrder.useMutation({
     onSuccess: () => {
         utils.orders.getVendorOrders.invalidate();
@@ -30,9 +29,21 @@ export default function SellerDeliveryPage() {
     }
   });
 
-  // Ensure client-side mounting for Leaflet
+  // Ensure client-side mounting for Leaflet and fetch location
   useEffect(() => {
       setMounted(true);
+      
+      if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+              (position) => {
+                  setCurrentLocation([position.coords.latitude, position.coords.longitude]);
+              },
+              (error) => {
+                  console.error("Error getting location:", error);
+                  // Optional: Handle error by keeping undefined (will fall back to default in MapOrders)
+              }
+          );
+      }
   }, []);
 
   if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
@@ -47,6 +58,7 @@ export default function SellerDeliveryPage() {
               <MapOrders 
                 vendorName="You"
                 buyerName={order.buyer?.name || "Buyer"}
+                vendorLocation={currentLocation}
                 onArrival={() => {
                    // Optional: Auto-complete or show notification
                    // For seller, we might want manual confirmation, so we won't auto-complete here yet

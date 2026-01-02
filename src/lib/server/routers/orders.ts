@@ -293,6 +293,8 @@ export const ordersRouter = router({
             name: vendorTable.name,
             avatarUrl: vendorTable.avatarUrl,
             phoneNumber: vendorTable.phoneNumber,
+            currentLatitude: vendorTable.currentLatitude,
+            currentLongitude: vendorTable.currentLongitude,
           },
           buyer: {
             name: buyerTable.name,
