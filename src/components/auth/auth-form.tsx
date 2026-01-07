@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 export function AuthForm() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -149,6 +150,17 @@ export function AuthForm() {
             placeholder="Minimal 8 karakter"
           />
         </div>
+        
+        {!isSignUp && (
+          <div className="flex justify-end">
+            <Link 
+              href="/auth/forgot-password" 
+              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            >
+              Lupa kata sandi?
+            </Link>
+          </div>
+        )}
 
         {isSignUp && (
           <div>
